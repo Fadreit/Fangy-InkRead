@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fadreit.inkreadboot.Mapper.AdminMapper">
+    <select id="PageListUsers" resultType="com.fadreit.inkreadboot.Entity.User">
+        select * from user
+        <where>
+            <if test="keyword != null">
+                and username like '%${keyword}%'
+            </if>
+        </where>
+        order by updated_at desc
+    </select>
+
+    <select id="GetUserById" resultType="com.fadreit.inkreadboot.Entity.User">
+        select id,
+               username,
+               password,
+               nickname,
+               phone,
+               role,
+               status,
+               created_at,
+               updated_at,
+               is_deleted
+        from user
+        where id = #{id}
+    </select>
+
+    <update id="UpdateUserStatus">
+        update user set status = #{status}, updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <update id="UpdateUserRole">
+        update user set role = #{role}, updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <select id="GetUserCount" resultType="Integer">
+        select count(id) from user where is_deleted = 0
+    </select>
+
+    <select id="GetCategoryCount" resultType="Integer">
+        select count(id) from category where is_deleted = 0
+    </select>
+
+    <select id="GetPendingOrderCount" resultType="Integer">
+        select count(id) from orders where status = '待发货'
+    </select>
+
+    <select id="GetBookCount" resultType="Integer">
+        select count(id) from book where is_deleted = 0
+    </select>
+
+    <select id="GetRecentOrders" resultType="com.fadreit.inkreadboot.Dto.Admin_DashBoardReturn">
+        select orders.id,
+               order_no,
+               user.username,
+               total_amount,
+               orders.status,
+               orders.created_at
+        from orders inner join user on orders.user_id = user.id
+        order by orders.created_at desc
+    </select>
+</mapper>

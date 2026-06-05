@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fadreit.inkreadboot.Mapper.UserMapper">
+
+    <select id="queryUsername" resultType="Integer">
+        select count(*) from user where username = #{username}
+    </select>
+
+    <insert id="insertUser" useGeneratedKeys="true">
+        insert into user(id, username, password, nickname, phone, role, status, created_at, updated_at, is_deleted)
+        values (#{id},#{username},#{password},#{nickname},#{phone},#{role},#{status},#{createdAt},#{updatedAt},#{isDeleted})
+    </insert>
+
+    <select id="queryUser" resultType="com.fadreit.inkreadboot.Entity.User">
+        select id,
+               username,
+               password,
+               nickname,
+               phone,
+               role,
+               status,
+               created_at,
+               updated_at,
+               is_deleted
+        from user
+        where username = #{username} and password = #{password}
+    </select>
+
+    <select id="queryUserById" resultType="com.fadreit.inkreadboot.Entity.User">
+        select id,
+               username,
+               nickname,
+               phone,
+               role,
+               status,
+               created_at,
+               updated_at
+        from user
+        where id = #{id}
+    </select>
+
+    <update id="updateProfile">
+        update user
+        <set>
+            <if test="nickname != null">
+                nickname = #{nickname},
+            </if>
+            <if test="phone != null">
+                phone = #{phone},
+            </if>
+            updated_at = #{updatedAt}
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="fixPassword">
+        update user
+        <set>
+            password = #{password},
+            updated_at = #{updatedAt}
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="queryUserpassword" resultType="String">
+        select password from user where id = #{id}
+    </select>
+</mapper>

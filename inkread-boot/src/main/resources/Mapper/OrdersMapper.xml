@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fadreit.inkreadboot.Mapper.OrdersMapper">
+    <insert id="addOrder">
+        insert into orders(order_no, user_id, total_amount, status,
+                           receiver_name, receiver_phone, receiver_address,
+                           created_at, updated_at)
+        values(#{orderNo}, #{userId}, #{totalAmount}, #{status},
+               #{receiverName}, #{receiverPhone}, #{receiverAddress},
+               #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="queryOrderByOrderNo" resultType="com.fadreit.inkreadboot.Entity.Orders">
+        select id,
+               order_no,
+               user_id,
+               total_amount,
+               status,
+               receiver_name,
+               receiver_phone,
+               receiver_address,
+               logistics_company,
+               logistics_no,
+               created_at,
+               updated_at
+        from orders
+        where order_no = #{orderNo}
+    </select>
+
+    <insert id="addOrderItem">
+        insert into order_item(order_id, book_id, book_title, book_cover, price, quantity, subtotal)
+        values (#{orderId}, #{bookId}, #{bookTitle}, #{bookCover}, #{price}, #{quantity}, #{subtotal})
+    </insert>
+
+    <select id="PageListOrders" resultType="com.fadreit.inkreadboot.Entity.Orders">
+        select * from orders
+        <where>
+            <if test="request.status != null">
+                and status = #{request.status}
+            </if>
+            and user_id = #{userId}
+        </where>
+        order by updated_at desc
+    </select>
+
+    <select id="queryOrderById" resultType="com.fadreit.inkreadboot.Entity.Orders">
+        select id,
+               order_no,
+               user_id,
+               total_amount,
+               status,
+               receiver_name,
+               receiver_phone,
+               receiver_address,
+               logistics_company,
+               logistics_no,
+               created_at,
+               updated_at
+        from orders
+        where id = #{id}
+    </select>
+
+    <select id="queryOrderItems" resultType="com.fadreit.inkreadboot.Entity.OrderItem">
+        select id,
+               order_id,
+               book_id,
+               book_title,
+               book_cover,
+               price,
+               quantity,
+               subtotal
+        from order_item
+        where order_id = #{orderId}
+    </select>
+
+    <update id="updateOrderStatus">
+        update orders
+        set status = #{status}
+        where id = #{id}
+    </update>
+
+    <select id="PageListOrdersForAdmin" resultType="com.fadreit.inkreadboot.Entity.Orders">
+        select * from orders
+        <where>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="keyword != null">
+                and (order_no like concat('%', #{keyword}, '%')
+                        or receiver_name like concat('%', #{keyword}, '%')
+                        or receiver_phone like concat('%', #{keyword}, '%'))
+            </if>
+        </where>
+        order by created_at desc
+    </select>
+
+    <update id="updateOrderLogistics">
+        update orders
+        set logistics_company = #{logisticsCompany},
+            logistics_no = #{logisticsNo}
+        where id = #{id}
+    </update>
+</mapper>

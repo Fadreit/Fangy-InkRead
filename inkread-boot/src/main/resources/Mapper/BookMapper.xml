@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fadreit.inkreadboot.Mapper.BookMapper">
+    <insert id="addBook" parameterType="com.fadreit.inkreadboot.Entity.Book" useGeneratedKeys="true" keyProperty="id">
+        insert into book (title, author, isbn, category_id, price, stock, publisher, publish_date, description, cover_url, status, created_at, updated_at, is_deleted)
+        values (#{title}, #{author}, #{isbn}, #{categoryId}, #{price}, #{stock}, #{publisher}, #{publishDate}, #{description}, #{coverUrl}, #{status}, #{createdAt}, #{updatedAt}, #{isDeleted})
+    </insert>
+
+    <select id="PageListBooks" resultType="com.fadreit.inkreadboot.Entity.Book">
+        select * from book
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and (title like concat('%', #{keyword}, '%') or author like concat('%', #{keyword}, '%'))
+            </if>
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+        order by updated_at desc
+    </select>
+    
+    <select id="PageShowBooks"  resultType="com.fadreit.inkreadboot.Entity.Book">
+        select * from book
+        <where>
+            and status = 1 and is_deleted = 0
+            <if test="keyword != null and keyword != ''">
+                and (title like concat('%', #{keyword}, '%') or author like concat('%', #{keyword}, '%'))
+            </if>
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+        </where>
+        order by
+        <choose>
+            <when test="sort == 'latest'">updated_at desc</when>
+            <when test="sort == 'price_asc'">price asc</when>
+            <when test="sort == 'price_desc'">price desc</when>
+            <when test="sort == 'sales'">sales desc</when>
+            <otherwise>created_at desc</otherwise>
+        </choose>
+    </select>
+
+    <select id="getBookById" resultType="com.fadreit.inkreadboot.Entity.Book">
+        select id,
+               title,
+               author,
+               isbn,
+               category_id,
+               price,
+               stock,
+               publisher,
+               publish_date,
+               description,
+               cover_url,
+               status,
+               created_at,
+               updated_at,
+               is_deleted
+        from book where id = #{id}
+    </select>
+
+    <update id="updateBook">
+        update book
+        <set>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="author != null and author != ''">
+                author = #{author},
+            </if>
+            <if test="isbn != null and isbn != ''">
+                isbn = #{isbn},
+            </if>
+            <if test="categoryId != null">
+                category_id = #{categoryId},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="stock != null">
+                stock = #{stock},
+            </if>
+            <if test="publisher != null and publisher != ''">
+                publisher = #{publisher},
+            </if>
+            <if test="publishDate != null">
+                publish_date = #{publishDate},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="coverUrl != null and coverUrl != ''">
+                cover_url = #{coverUrl},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateBookIsDeleted">
+        update book
+        set is_deleted = 1
+        where id = #{id}
+    </update>
+
+    <update id="updateBookShelf">
+        update book
+        set status = #{status},updated_at = #{updatedAT}
+        where id = #{id}
+    </update>
+
+    <update id="updateBookStock">
+        update book
+        set stock = #{nowStock}
+        where id = #{bookId}
+    </update>
+</mapper>

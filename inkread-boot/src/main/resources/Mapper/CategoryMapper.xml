@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fadreit.inkreadboot.Mapper.CategoryMapper">
+    <select id="queryCategoryNameCount" resultType="Integer">
+        select count(*) from category where name = #{name} and is_deleted = 0
+    </select>
+
+    <insert id="addCategory">
+        insert into category(name, description, sort_order,book_count,status, created_at, updated_at, is_deleted)
+        values (#{name}, #{description}, #{sortOrder}, #{bookCount}, #{status}, #{createdAt}, #{updatedAt}, #{isDeleted})
+    </insert>
+
+    <select id="listCategories" resultType="com.fadreit.inkreadboot.Entity.Category">
+        select id,
+               name,
+               description,
+               sort_order,
+               book_count,
+               status,
+               created_at,
+               updated_at,
+               is_deleted
+        from category order by sort_order desc
+    </select>
+
+    <select id="showCategories" resultType="com.fadreit.inkreadboot.Dto.Category_ShowCategories">
+        select id,
+               name,
+               description,
+               sort_order
+        from category where status = 1 and is_deleted = 0
+        order by sort_order desc
+    </select>
+
+    <select id="queryCategoryById" resultType="com.fadreit.inkreadboot.Entity.Category">
+        select id,
+               name,
+               description,
+               sort_order,
+               book_count,
+               status,
+               created_at,
+               updated_at,
+               is_deleted
+        from category where id = #{id}
+    </select>
+
+    <update id="updateCategory">
+        update category
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="sortOrder != null">
+                sort_order = #{sortOrder},
+            </if>
+        </set>
+    </update>
+
+    <delete id="deleteCategory">
+        delete from category where id = #{id}
+    </delete>
+
+    <update id="updateCategoryStatus">
+        update category set status = #{status} where id = #{id}
+    </update>
+</mapper>

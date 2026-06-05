@@ -1,0 +1,3 @@
+/target/
+/inkread-boot/.mvn/
+/inkread-boot/src/main/resources/application.yaml

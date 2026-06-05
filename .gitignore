@@ -1,0 +1,25 @@
+ IDE 配置
+.idea/
+
+
+# Maven Wrapper
+.mvn/
+inkread-boot/.mvn/
+
+# Build output.
+inkread-boot/out/
+inkread-boot/target/
+
+# 日志
+*.log
+/src/
+/inkread-boot/src/main/resources/static/logs/
+
+/inkread-boot/target/
+/src/
+
+/inkread-boot/.mvn/
+/inkread-boot/src/main/resources/static/logs/
+/inkread-boot/src/main/resources/application.yaml
+
+Fangy-InkRead.iml
