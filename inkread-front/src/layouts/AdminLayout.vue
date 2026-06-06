@@ -13,6 +13,7 @@
         <RouterLink to="/admin"><DataAnalysis /> 仪表盘</RouterLink>
         <RouterLink to="/admin/books"><Collection /> 图书管理</RouterLink>
         <RouterLink to="/admin/categories"><Menu /> 分类管理</RouterLink>
+        <RouterLink to="/admin/announcements"><Bell /> 公告管理</RouterLink>
         <RouterLink to="/admin/orders"><Tickets /> 订单管理</RouterLink>
         <RouterLink to="/admin/users"><User /> 用户管理</RouterLink>
       </nav>
@@ -37,7 +38,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Collection, DataAnalysis, Menu, Tickets, User } from '@element-plus/icons-vue'
+import { Bell, Collection, DataAnalysis, Menu, Tickets, User } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import BrandMark from '@/components/BrandMark.vue'
 
@@ -48,6 +49,7 @@ const titles: Record<string, string> = {
   'admin-dashboard': '仪表盘',
   'admin-books': '图书管理',
   'admin-categories': '分类管理',
+  'admin-announcements': '公告管理',
   'admin-orders': '订单管理',
   'admin-users': '用户管理'
 }

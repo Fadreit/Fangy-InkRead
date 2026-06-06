@@ -24,13 +24,13 @@
           </RouterLink>
           <div class="cart-row-main">
             <RouterLink :to="`/books/${item.bookId}`" class="cart-title">{{ item.bookTitle }}</RouterLink>
-            <span class="cart-muted">库存 {{ item.stock ?? '未知' }}</span>
+            <span class="cart-muted">{{ stockText(item) }}</span>
             <strong>¥{{ money(item.price) }}</strong>
           </div>
           <el-input-number
             :model-value="item.quantity"
             :min="1"
-            :max="item.stock || 999"
+            :max="quantityMax(item)"
             controls-position="right"
             @change="(value: number | undefined) => updateQuantity(item, Number(value || 1))"
           />
@@ -95,6 +95,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
+import { bookApi } from '@/api/books'
 import { cartApi } from '@/api/cart'
 import { ordersApi } from '@/api/orders'
 import BookCover from '@/components/BookCover.vue'
@@ -125,11 +126,29 @@ const isIndeterminate = computed(() => selectedIds.value.length > 0 && selectedI
 
 const money = (value?: number) => Number(value || 0).toFixed(2)
 const rowSubtotal = (item: CartItem) => Number(item.subtotal ?? Number(item.price || 0) * Number(item.quantity || 0))
+const hasStock = (item: CartItem) => typeof item.stock === 'number' && Number.isFinite(item.stock)
+const stockText = (item: CartItem) => (hasStock(item) ? `库存 ${item.stock}` : '库存以书籍详情为准')
+const quantityMax = (item: CartItem) => (hasStock(item) ? Math.max(Number(item.stock), 1) : 999)
+
+async function enrichCartItems(items: CartItem[]) {
+  const missingStockItems = items.filter((item) => !hasStock(item) && item.bookId)
+  if (!missingStockItems.length) return items
+
+  const enriched = await Promise.all(
+    missingStockItems.map((item) => bookApi.detail(item.bookId).then((book) => ({ id: item.id, stock: book.stock })).catch(() => null))
+  )
+  const stockMap = new Map(enriched.filter(Boolean).map((item) => [item!.id, item!.stock]))
+  return items.map((item) => {
+    const stock = stockMap.get(item.id)
+    return typeof stock === 'number' ? { ...item, stock } : item
+  })
+}
 
 async function loadCart() {
   loading.value = true
   try {
-    cartItems.value = await cartApi.list()
+    const items = await cartApi.list()
+    cartItems.value = await enrichCartItems(items)
     selectedIds.value = selectedIds.value.filter((id) => cartItems.value.some((item) => item.id === id))
   } finally {
     loading.value = false

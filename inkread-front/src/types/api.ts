@@ -52,6 +52,23 @@ export interface Category {
   updatedAt?: string
 }
 
+export interface Announcement {
+  id?: number
+  title: string
+  content: string
+  status?: number
+  createdAt?: string
+  updatedAt?: string
+  isDeleted?: number
+}
+
+export interface AnnouncementQuery {
+  page?: number
+  size?: number
+  keyword?: string
+  status?: number
+}
+
 export interface Book {
   id?: number
   title: string

@@ -1,7 +1,9 @@
 package com.fadreit.inkreadboot.Mapper;
 
 import com.fadreit.inkreadboot.Entity.Announcement;
+import com.fadreit.inkreadboot.Dto.Announce_GetAllRequest;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -30,7 +32,7 @@ public interface AnnouncementMapper {
      * 获取所有公告
      * @return
      */
-    List<Announcement> getAllAnnouncements();
+    List<Announcement> getAllAnnouncements(Announce_GetAllRequest request);
 
     /**
      * 修改公告
@@ -49,5 +51,5 @@ public interface AnnouncementMapper {
      * @param id
      * @param status
      */
-    void updateAnnouncementStatus(Integer id, Integer status);
+    void updateAnnouncementStatus(@Param("id") Integer id, @Param("status") Integer status);
 }

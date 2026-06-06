@@ -10,6 +10,7 @@ import com.fadreit.inkreadboot.Mapper.AnnouncementMapper;
 import com.fadreit.inkreadboot.Service.AnnouncementService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import java.util.List;
 public class AnnouncementServiceImpl implements AnnouncementService {
 
     //注入Mapper
+    @Autowired
     private AnnouncementMapper announcementMapper;
 
     @Override
@@ -44,6 +46,9 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     public Result GetAnnouncementById(Integer id) {
         //查询
         Announcement announcement = announcementMapper.GetAnnouncementById(id);
+        if (announcement == null) {
+            return Result.error(404, "公告不存在");
+        }
         //判断是否启用或删除
         if (announcement.getStatus() == 0 || announcement.getIsDeleted() == 1) {
             return Result.error(404, "公告不存在");
@@ -78,7 +83,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         //开始分页
         PageHelper.startPage(request.getPage(), request.getSize());
         //查询并返回结果
-        List<Announcement> list = announcementMapper.getAllAnnouncements();
+        List<Announcement> list = announcementMapper.getAllAnnouncements(request);
         //封装分页结果
         Page<Announcement> page = (Page<Announcement>) list;
         PageResult<Announcement> pageResult = new PageResult<>(

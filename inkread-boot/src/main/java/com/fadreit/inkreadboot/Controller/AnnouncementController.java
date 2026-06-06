@@ -6,6 +6,7 @@ import com.fadreit.inkreadboot.Dto.Announcement_AddRequest;
 import com.fadreit.inkreadboot.Dto.Announcement_PageListRequest;
 import com.fadreit.inkreadboot.Service.AnnouncementService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class AnnouncementController {
 
     //注入Service
+    @Autowired
     private AnnouncementService announcementService;
 
     /**
@@ -69,7 +71,7 @@ public class AnnouncementController {
      * @return
      */
     @PutMapping("/api/admin/announcements/{id}")
-    public Result updateAnnouncement(@PathVariable Integer id, Announcement_AddRequest  request){
+    public Result updateAnnouncement(@PathVariable Integer id, @RequestBody Announcement_AddRequest  request){
         //日志记录
         log.info("后台修改公告");
         //调用Service

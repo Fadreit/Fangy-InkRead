@@ -10,6 +10,8 @@ const router = createRouter({
       children: [
         { path: '', name: 'home', component: () => import('@/views/HomeView.vue') },
         { path: 'books/:id', name: 'book-detail', component: () => import('@/views/BookDetailView.vue') },
+        { path: 'announcements', name: 'announcements', component: () => import('@/views/AnnouncementsView.vue') },
+        { path: 'announcements/:id', name: 'announcement-detail', component: () => import('@/views/AnnouncementDetailView.vue') },
         { path: 'cart', name: 'cart', component: () => import('@/views/CartView.vue'), meta: { requiresAuth: true } },
         { path: 'orders', name: 'orders', component: () => import('@/views/OrdersView.vue'), meta: { requiresAuth: true } },
         { path: 'orders/:id', name: 'order-detail', component: () => import('@/views/OrderDetailView.vue'), meta: { requiresAuth: true } },
@@ -25,6 +27,7 @@ const router = createRouter({
         { path: '', name: 'admin-dashboard', component: () => import('@/views/admin/AdminDashboardView.vue') },
         { path: 'books', name: 'admin-books', component: () => import('@/views/admin/AdminBooksView.vue') },
         { path: 'categories', name: 'admin-categories', component: () => import('@/views/admin/AdminCategoriesView.vue') },
+        { path: 'announcements', name: 'admin-announcements', component: () => import('@/views/admin/AdminAnnouncementsView.vue') },
         { path: 'orders', name: 'admin-orders', component: () => import('@/views/admin/AdminOrdersView.vue') },
         { path: 'users', name: 'admin-users', component: () => import('@/views/admin/AdminUsersView.vue') }
       ]

@@ -1,5 +1,9 @@
 <div align="center">
 
+<p>
+  <img src="./inkread-front/public/inkread-logo.svg" width="160" alt="墨香书阁Logo">
+</p>
+
 <img src="https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white" alt="Java 17">
 <img src="https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 3">
 <img src="https://img.shields.io/badge/Vue-3.x-4FC08D?logo=vuedotjs&logoColor=white" alt="Vue 3">
@@ -23,6 +27,7 @@
 - 图书分类浏览与图书列表
 - 图书详情查看（含封面图片）
 - 图书搜索与分页
+- 公告查看
 
 ### 👤 用户功能 (User)
 - 注册 / 登录（JWT + Sa-Token）
@@ -74,6 +79,7 @@ Fangy-InkRead/
 │       └── application.yaml         # 本地配置
 ├── inkread-front/                 # 前端 Vue 3 项目
 └── docs/                          # 项目文档
+        ├── db/                      # 数据库语句
 ```
 
 ---
@@ -82,10 +88,10 @@ Fangy-InkRead/
 
 ### 环境要求
 
-- **JDK** 17+
-- **MySQL** 8.0+
+- **JDK** 17
+- **MySQL** 8
 - **Node.js** 18+（前端）
-- **Maven**（或使用项目自带的 Maven Wrapper）
+- **Maven** 3
 
 ### 1. 克隆项目
 
@@ -115,8 +121,6 @@ cp inkread-boot/src/main/resources/application-sample.yaml \
 - 数据库连接信息（URL、用户名、密码）
 - 阿里云 OSS 凭证（AccessKey、Bucket 等）
 
-> ⚠️ `application.yaml` 已在 `.gitignore` 中，不会被提交到仓库。
-
 ### 4. 启动后端
 
 ```bash
@@ -126,7 +130,6 @@ cd inkread-boot
 
 后端启动后访问：
 - API 服务：`http://localhost:8080`
-- API 文档：`http://localhost:8080/doc.html`
 
 ### 5. 启动前端
 
@@ -142,20 +145,21 @@ npm run dev
 
 ## 🗄️ 数据库设计
 
-项目包含 6 张核心数据表：
+项目包含 7 张核心数据表：
 
 ```
-user → category → book → cart → orders → order_item
+user → category → book → cart → orders → order_item -> announcement
 ```
 
-| 表名 | 说明 |
-|---|---|
-| `user` | 用户表（含角色字段，支持软删除） |
-| `category` | 图书分类表（支持软删除） |
-| `book` | 图书表（含 OSS 封面 URL，支持软删除/上下架） |
-| `cart` | 购物车（用户-图书关联） |
-| `orders` | 订单表（含收件信息、金额、状态） |
-| `order_item` | 订单明细（订单快照，存储下单时的书名/封面/价格） |
+| 表名           | 说明                          |
+|--------------|-----------------------------|
+| `user`       | 用户表（含角色字段，支持软删除）            |
+| `category`   | 图书分类表（支持软删除）                |
+| `book`       | 图书表（含 OSS 封面 URL，支持软删除/上下架） |
+| `cart`       | 购物车（用户-图书关联）                |
+| `orders`     | 订单表（含收件信息、金额、状态）            |
+| `order_item` | 订单明细（订单快照，存储下单时的书名/封面/价格）   |
+| `announce`   | 公告表（标题、内容）                  |
 
 ---
 
@@ -169,19 +173,11 @@ user → category → book → cart → orders → order_item
 | 用户接口 | 13 | `/api/cart`, `/api/orders`, `/api/users` | 需要登录 |
 | 管理接口 | 18 | `/api/admin/**` | 需要 admin 角色 |
 
-所有接口统一返回格式：
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {}
-}
-```
-
 ---
 
-## 📝 开发计划
+## 📝 开发计划以及更新日志
 
+ ### ver 1.0 ----- 2026.6.3
 - [x] 项目脚手架搭建
 - [x] 公开接口（分类列表、图书列表/详情）
 - [x] 用户模块（注册、登录、个人中心）
@@ -189,6 +185,11 @@ user → category → book → cart → orders → order_item
 - [x] 购物车 + 下单流程
 - [x] 用户管理 + 仪表盘
 - [x] 前端页面开发（AI）
+
+### ver 1.1 ----- 2026.6.6
+- [x] 增加公告模块
+- [x] 修复部分bug
+- [x] 前端代码更正
 
 ---
 

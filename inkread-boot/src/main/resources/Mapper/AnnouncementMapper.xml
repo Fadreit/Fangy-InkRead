@@ -19,20 +19,20 @@
 
     <insert id="addAnnouncement" useGeneratedKeys="true" keyProperty="id">
         insert into announcement(title, content, status, created_at, updated_at, is_deleted)
-        values (#{title}, #{content}, #{status}, #{created_at}, #{updated_at}, #{is_deleted})
+        values (#{title}, #{content}, #{status}, #{createdAt}, #{updatedAt}, #{isDeleted})
     </insert>
 
     <select id="getAllAnnouncements" resultType="com.fadreit.inkreadboot.Entity.Announcement">
         select id, title, content, status, created_at, updated_at, is_deleted
+        from announcement
         <where>
-            <if test="title != null">
-                and title like concat('%', #{title}, '%')
+            <if test="keyword != null and keyword != ''">
+                and (title like concat('%', #{keyword}, '%') or content like concat('%', #{keyword}, '%'))
             </if>
             <if test="status != null">
                 and status = #{status}
             </if>
         </where>
-        from announcement
         order by updated_at desc
     </select>
 
@@ -48,13 +48,14 @@
             <if test="status != null">
                 status = #{status},
             </if>
-            <if test="created_at != null">
-                created_at = #{created_at},
+            <if test="createdAt != null">
+                created_at = #{createdAt},
             </if>
-            <if test="updated_at != null">
-                updated_at = #{updated_at},
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt},
             </if>
         </set>
+        where id = #{id}
     </update>
 
     <update id="deleteAnnouncement">
