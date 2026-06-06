@@ -76,3 +76,13 @@ create table order_item(
                            quantity int comment '下单数量',
                            subtotal DECIMAL comment '单项图书总价'
 ) comment '订单项表';
+
+create table announcement (
+                              id bigint primary key auto_increment comment '公告ID',
+                              title varchar(200) comment '公告标题',
+                              content text comment '公告内容',
+                              status tinyint comment '状态',
+                              created_at datetime comment '创建时间',
+                              updated_at datetime comment '更新时间',
+                              is_deleted tinyint comment '软删除'
+) comment '公告表';

@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
         }
         //账号存在，先查询密码是否正确
         User now_user = userMapper.queryUser(user.getUsername(),user.getPassword());
-        if (!now_user.getPassword().equals(user.getPassword())){
+        if (now_user == null){
             return Result.error(402,"用户名或密码错误");
         }
         //密码正确，查询用户是否被禁用
