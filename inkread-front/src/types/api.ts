@@ -69,6 +69,35 @@ export interface AnnouncementQuery {
   status?: number
 }
 
+export interface MessageItem {
+  id: number
+  userId?: number
+  username?: string
+  nickname?: string
+  content: string
+  likeCount?: number
+  liked?: boolean
+  createdAt?: string
+  updatedAt?: string
+  isDeleted?: number
+}
+
+export interface MessageQuery {
+  page?: number
+  size?: number
+  keyword?: string
+}
+
+export interface MessagePayload {
+  content: string
+}
+
+export interface MessageLikeResult {
+  messageId: number
+  likeCount: number
+  liked?: boolean
+}
+
 export interface Book {
   id?: number
   title: string

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fadreit.inkreadboot.Mapper.MessageMapper">
+    <insert id="addMessage" useGeneratedKeys="true" keyProperty="id">
+        insert into message(user_id, content, like_count, created_at, updated_at, is_deleted)
+        values (#{userId}, #{content}, #{likeCount}, #{createdAt}, #{updatedAt}, #{isDeleted})
+    </insert>
+
+    <select id="getMessageVo" resultType="com.fadreit.inkreadboot.Common.MessageResult">
+        select message.id as id, message.user_id as userId, user.username, user.nickname,
+               message.content, message.like_count, message.created_at as createdAt
+        from message inner join user on message.user_id = user.id
+        where message.is_deleted = 0 and message.id = #{id}
+    </select>
+
+    <select id="getMessageWall" resultType="com.fadreit.inkreadboot.Common.MessageResult">
+        select message.id as id, message.user_id as userId, user.username, user.nickname,
+               message.content, message.like_count, message.created_at as createdAt
+        from message inner join user on message.user_id = user.id
+        where message.is_deleted = 0
+        order by
+            case when #{sortType} = 'latest' then message.updated_at end desc,
+            case when #{sortType} = 'hot' then message.like_count end desc
+    </select>
+
+    <select id="queryLikeIds" resultType="Integer">
+        select message_like.message_id
+        from message_like inner join message on message_like.message_id = message.id
+        where message_like.user_id = #{userId} and message.is_deleted = 0
+    </select>
+
+    <select id="PageListMessages" resultType="com.fadreit.inkreadboot.Common.MessageResult">
+        select message.id as id, message.user_id as userId, user.username, user.nickname,
+               message.content, message.like_count, message.created_at as createdAt
+        from message inner join user on message.user_id = user.id
+        where message.is_deleted = 0
+        order by message.updated_at desc
+    </select>
+
+    <select id="getMessageById" resultType="com.fadreit.inkreadboot.Vo.Message_getMessageByIdVo">
+        select message.id as id, message.user_id as userId, user.username, user.nickname,
+               message.content, message.like_count, message.created_at as createdAt, message.updated_at as updatedAt
+        from message inner join user on message.user_id = user.id
+        where message.is_deleted = 0 and message.id = #{id}
+    </select>
+
+    <select id="getMessage" resultType="com.fadreit.inkreadboot.Entity.Message">
+        select id, user_id, content, like_count, created_at, updated_at, is_deleted
+        from message
+        where id = #{id}
+    </select>
+
+    <insert id="addMessageLike">
+        insert into message_like(message_id, user_id, created_at)
+        values (#{messageId}, #{userId}, #{createdAt})
+    </insert>
+
+    <update id="updateMessageLikeCount">
+        update message set like_count = #{likeCount} where id = #{id}
+    </update>
+
+    <update id="deleteMessage">
+        update message set is_deleted = 1 where id = #{id}
+    </update>
+
+    <select id="adminPageListMessages" resultType="com.fadreit.inkreadboot.Entity.Message">
+        select id, user_id, content, like_count, created_at, updated_at, is_deleted from message
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and content like concat('%', #{keyword}, '%')
+                or username like concat('%', #{keyword}, '%')
+            </if>
+        </where>
+        order by updated_at desc
+    </select>
+
+    <select id="getMessageLike" resultType="com.fadreit.inkreadboot.Entity.MessageLike">
+        select id, message_id, user_id, created_at from message_like
+        where message_id = #{id} and user_id = #{userId}
+    </select>
+
+    <delete id="deleteMessageLike">
+        delete from message_like where id = #{id}
+    </delete>
+
+    <select id="queryMessageLikeIds" resultType="Integer">
+        select id from message_like where message_id = #{id}
+    </select>
+</mapper>

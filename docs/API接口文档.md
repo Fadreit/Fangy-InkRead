@@ -4,7 +4,7 @@
 > 
 > 如果在阅读本文档时发现错误，欢迎提出建议，感谢您的阅读。
 > 
-> 版本：v1.0 | 日期：2026-06-02 | 用途：开发教程用
+> 最新版本：v1.5 | 更新日期：2026-06-06 | 用途：开发指导用
 
 ---
 
@@ -19,7 +19,11 @@
 - [七、用户管理模块（管理员）](#七用户管理模块管理员)
 - [八、仪表盘模块（管理员）](#八仪表盘模块管理员)
 - [九、公告模块](#九公告模块)
-- [十、错误码速查表](#十错误码速查表)
+- [十、留言模块](#十留言模块)
+- [十一、营销折扣模块](#十一营销折扣模块)
+- [十二、会员积分模块](#十二会员积分模块)
+- [十三、多图上传模块](#十三多图上传模块)
+- [十四、错误码速查表](#十四错误码速查表)
 
 ---
 
@@ -2229,7 +2233,943 @@ http://localhost:8080
 
 ---
 
-## 十、错误码速查表
+## 十、留言模块
+
+> 留言墙与留言区共用同一张 `message` 表，由前端区分展示。任何登录用户均可发布留言，无需审核。
+
+---
+
+### 10.1 发布留言
+
+> **需登录** — 普通用户 / 管理员
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/messages` |
+| **方法** | `POST` |
+| **Content-Type** | `application/json` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**请求体：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|:---:|------|
+| `content` | String | ✅ | 留言内容，最长 500 字符 |
+
+**请求示例：**
+
+```json
+{
+  "content": "墨香书阁真不错，推荐给大家！"
+}
+```
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "留言成功",
+  "data": {
+    "id": 1,
+    "userId": 3,
+    "username": "zhangsan",
+    "nickname": "张三",
+    "content": "墨香书阁真不错，推荐给大家！",
+    "likeCount": 0,
+    "liked": false,
+    "createdAt": "2026-06-10 14:30:00"
+  }
+}
+```
+
+**错误场景：**
+
+| 场景 | code | message |
+|------|:---:|------|
+| 内容为空 | 400 | 留言内容不能为空 |
+
+---
+
+### 10.2 留言墙
+
+> **公开接口** — 无需登录
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/messages/wall` |
+| **方法** | `GET` |
+
+**查询参数：**
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|:---:|------|------|
+| `sort` | String | ❌ | `latest` | 排序方式：`latest` 最新 / `hot` 最热（按点赞数降序） |
+
+> 仅返回未删除的留言，固定返回 10 条。若留言总数不足 10 条则返回全部。
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 5,
+      "userId": 8,
+      "username": "bookworm",
+      "nickname": "书虫",
+      "content": "强烈推荐《深入理解 Java 虚拟机》，写得真好！",
+      "likeCount": 23,
+      "liked": true,
+      "createdAt": "2026-06-09 10:00:00"
+    },
+    {
+      "id": 3,
+      "userId": 3,
+      "username": "zhangsan",
+      "nickname": "张三",
+      "content": "墨香书阁真不错，推荐给大家！",
+      "likeCount": 15,
+      "liked": false,
+      "createdAt": "2026-06-08 16:00:00"
+    }
+  ]
+}
+```
+
+> `liked` 字段：登录用户返回真实状态，未登录用户始终返回 `false`。
+
+---
+
+### 10.3 留言区列表
+
+> **公开接口** — 无需登录
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/messages` |
+| **方法** | `GET` |
+
+**查询参数：**
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|:---:|------|------|
+| `page` | Integer | ❌ | 1 | 页码 |
+| `size` | Integer | ❌ | 20 | 每页条数 |
+
+> 仅返回未删除的留言，按更新时间倒序。
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": {
+    "total": 45,
+    "page": 1,
+    "size": 20,
+    "pages": 3,
+    "records": [
+      {
+        "id": 5,
+        "userId": 8,
+        "username": "bookworm",
+        "nickname": "书虫",
+        "content": "强烈推荐《深入理解 Java 虚拟机》！",
+        "likeCount": 23,
+        "liked": false,
+        "createdAt": "2026-06-09 10:00:00",
+        "updatedAt": "2026-06-09 10:00:00"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### 10.4 留言详情
+
+> **公开接口** — 无需登录
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/messages/{id}` |
+| **方法** | `GET` |
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long | 留言 ID |
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": {
+    "id": 5,
+    "userId": 8,
+    "username": "bookworm",
+    "nickname": "书虫",
+    "content": "强烈推荐《深入理解 Java 虚拟机》！",
+    "likeCount": 23,
+    "liked": false,
+    "createdAt": "2026-06-09 10:00:00",
+    "updatedAt": "2026-06-09 10:00:00"
+  }
+}
+```
+
+---
+
+### 10.5 点赞留言
+
+> **需登录** — 普通用户 / 管理员
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/messages/{id}/like` |
+| **方法** | `POST` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long | 留言 ID |
+
+> 同一用户对同一条留言只能点赞一次，重复点赞返回错误。
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "点赞成功",
+  "data": {
+    "messageId": 5,
+    "likeCount": 24
+  }
+}
+```
+
+**错误场景：**
+
+| 场景 | code | message |
+|------|:---:|------|
+| 留言不存在 | 404 | 留言不存在 |
+| 重复点赞 | 400 | 已经点过赞了 |
+
+---
+
+### 10.6 取消点赞
+
+> **需登录** — 普通用户 / 管理员
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/messages/{id}/like` |
+| **方法** | `DELETE` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long | 留言 ID |
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "已取消点赞",
+  "data": {
+    "messageId": 5,
+    "likeCount": 23
+  }
+}
+```
+
+---
+
+### 10.7 删除留言
+
+> **需登录** — 用户可删除自己的留言；管理员可删除任意留言
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/messages/{id}` |
+| **方法** | `DELETE` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long | 留言 ID |
+
+> 实现方式：软删除（`is_deleted = 1`）。普通用户只能删除自己的留言，否则返回 403。
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "删除成功",
+  "data": null
+}
+```
+
+---
+
+### 10.8 后台留言管理
+
+> **管理员接口** — 需 `admin` 角色
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/admin/messages` |
+| **方法** | `GET` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**查询参数：**
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|:---:|------|------|
+| `page` | Integer | ❌ | 1 | 页码 |
+| `size` | Integer | ❌ | 10 | 每页条数 |
+| `keyword` | String | ❌ | — | 按留言内容或用户名模糊搜索 |
+
+> 返回所有留言（含已删除），按更新时间倒序。
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": {
+    "total": 50,
+    "page": 1,
+    "size": 10,
+    "pages": 5,
+    "records": [
+      {
+        "id": 5,
+        "userId": 8,
+        "username": "bookworm",
+        "nickname": "书虫",
+        "content": "强烈推荐《深入理解 Java 虚拟机》！",
+        "likeCount": 23,
+        "isDeleted": 0,
+        "createdAt": "2026-06-09 10:00:00",
+        "updatedAt": "2026-06-09 10:00:00"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 十一、营销折扣模块
+
+> 管理员可设置单书折扣或分类折扣（至少指定其一）。可设定起止时间，到期自动恢复原价。生效规则：若图书同时命中单书折扣和分类折扣，**取折扣力度更大者**（即折后价格更低者）。
+
+### 折扣生效范围
+
+折扣信息贯穿以下前台接口的返回数据：
+
+| 接口 | 新增字段 | 说明 |
+|------|----------|------|
+| `GET /api/books` | `discountPrice`、`discountRate` | 若有生效折扣则返回折后价和折扣率，否则为 `null` |
+| `GET /api/books/{id}` | `discountPrice`、`discountRate` | 同上 |
+| `GET /api/cart` | 每项 `discountPrice`、`discountRate` | 同上；`subtotal` 按折后价计算 |
+| `POST /api/orders` | — | `totalAmount` 按折后价计算 |
+
+---
+
+### 11.1 创建折扣
+
+> **管理员接口** — 需 `admin` 角色
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/admin/discounts` |
+| **方法** | `POST` |
+| **Content-Type** | `application/json` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**请求体：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|:---:|------|
+| `bookId` | Long | ❌ | 指定图书 ID（与 categoryId 至少填一个） |
+| `categoryId` | Long | ❌ | 指定分类 ID（与 bookId 至少填一个） |
+| `discountRate` | BigDecimal | ✅ | 折扣率，如 `0.8` 表示 8 折，范围 0.01 ~ 1.00 |
+| `startTime` | String | ❌ | 生效开始时间（`yyyy-MM-dd HH:mm:ss`），不填则立即生效 |
+| `endTime` | String | ❌ | 生效结束时间，不填则永久有效 |
+
+**请求示例：**
+
+```json
+{
+  "bookId": 1,
+  "discountRate": 0.8,
+  "startTime": "2026-06-15 00:00:00",
+  "endTime": "2026-06-18 23:59:59"
+}
+```
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "创建成功",
+  "data": {
+    "id": 1,
+    "bookId": 1,
+    "bookTitle": "Java 编程思想",
+    "categoryId": null,
+    "categoryName": null,
+    "discountRate": 0.8,
+    "discountPrice": 79.20,
+    "startTime": "2026-06-15 00:00:00",
+    "endTime": "2026-06-18 23:59:59",
+    "createdAt": "2026-06-10 09:00:00"
+  }
+}
+```
+
+**错误场景：**
+
+| 场景 | code | message |
+|------|:---:|------|
+| bookId 和 categoryId 都为空 | 400 | 请指定适用图书或分类 |
+| 折扣率超出范围 | 400 | 折扣率必须在 0.01 ~ 1.00 之间 |
+
+---
+
+### 11.2 后台折扣列表
+
+> **管理员接口** — 需 `admin` 角色
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/admin/discounts` |
+| **方法** | `GET` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**查询参数：**
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|:---:|------|------|
+| `page` | Integer | ❌ | 1 | 页码 |
+| `size` | Integer | ❌ | 10 | 每页条数 |
+| `keyword` | String | ❌ | — | 按书名或分类名模糊搜索 |
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": {
+    "total": 5,
+    "page": 1,
+    "size": 10,
+    "pages": 1,
+    "records": [
+      {
+        "id": 1,
+        "bookId": 1,
+        "bookTitle": "Java 编程思想",
+        "categoryId": null,
+        "categoryName": null,
+        "discountRate": 0.8,
+        "discountPrice": 79.20,
+        "startTime": "2026-06-15 00:00:00",
+        "endTime": "2026-06-18 23:59:59",
+        "status": 1,
+        "createdAt": "2026-06-10 09:00:00"
+      }
+    ]
+  }
+}
+```
+
+> `status` 字段：`1` 生效中 / `0` 未生效（未到开始时间）/ `-1` 已过期。由后端根据时间自动判定。
+
+---
+
+### 11.3 折扣详情
+
+> **管理员接口** — 需 `admin` 角色
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/admin/discounts/{id}` |
+| **方法** | `GET` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long | 折扣 ID |
+
+**成功响应：** 同 11.2 单条记录结构。
+
+---
+
+### 11.4 编辑折扣
+
+> **管理员接口** — 需 `admin` 角色
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/admin/discounts/{id}` |
+| **方法** | `PUT` |
+| **Content-Type** | `application/json` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long | 折扣 ID |
+
+**请求体（全部可选，传什么改什么）：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|:---:|------|
+| `discountRate` | BigDecimal | ❌ | 折扣率 |
+| `startTime` | String | ❌ | 生效开始时间 |
+| `endTime` | String | ❌ | 生效结束时间 |
+
+**请求示例：**
+
+```json
+{
+  "discountRate": 0.7,
+  "endTime": "2026-06-20 23:59:59"
+}
+```
+
+**成功响应：** 同 11.1 创建成功响应结构。
+
+---
+
+### 11.5 删除折扣
+
+> **管理员接口** — 需 `admin` 角色
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/admin/discounts/{id}` |
+| **方法** | `DELETE` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long | 折扣 ID |
+
+> 物理删除。
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "删除成功",
+  "data": null
+}
+```
+
+---
+
+## 十二、会员积分模块
+
+> 用户可购买会员（一个等级），会员享受专属折扣（与营销折扣叠加时取更低价）。用户通过签到和购物获得积分，积分可在下单时抵扣金额（100 积分 = 1 元）。积分有效期 1 年，到期自动清理。
+
+### 会员规则
+
+| 项目 | 说明 |
+|------|------|
+| 会员价格 | 29.9 元/月 |
+| 会员折扣 | 全场 9.5 折（即 discountRate = 0.95） |
+| 折扣叠加 | 若图书同时有营销折扣，取折后价更低者 |
+| 过期处理 | 到期后 `@Scheduled` 每日扫描自动降级 |
+
+### 积分规则
+
+| 项目 | 规则 |
+|------|------|
+| 签到积分 | 每日签到 +5 分；连续签到每天额外 +2 分（第 2 天 +7，第 3 天 +9...）；中断后重新从 +5 开始 |
+| 购物积分 | 每消费 1 元得 1 分（按实付金额计算），订单"已完成"时发放 |
+| 积分抵扣 | 100 积分 = 1 元，单笔订单最多抵扣订单金额的 50% |
+| 积分有效期 | 自获得之日起 365 天，到期自动扣除 |
+
+---
+
+### 12.1 购买会员
+
+> **需登录** — 普通用户 / 管理员
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/members/buy` |
+| **方法** | `POST` |
+| **Content-Type** | `application/json` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**请求体：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|:---:|------|
+| `months` | Integer | ✅ | 购买月数，范围 1 ~ 12 |
+
+**请求示例：**
+
+```json
+{
+  "months": 3
+}
+```
+
+> 会员购买将在后续 2.x 版本接入真实支付，1.x 版本中购买即立即生效。
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "开通成功",
+  "data": {
+    "id": 1,
+    "userId": 3,
+    "startTime": "2026-06-10 15:00:00",
+    "endTime": "2026-09-10 15:00:00",
+    "isActive": true
+  }
+}
+```
+
+**错误场景：**
+
+| 场景 | code | message |
+|------|:---:|------|
+| 已经是会员 | 400 | 您已是会员，到期后可续费 |
+
+---
+
+### 12.2 查询会员状态
+
+> **需登录** — 普通用户 / 管理员
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/members/my` |
+| **方法** | `GET` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**成功响应（会员）：**
+
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": {
+    "isMember": true,
+    "startTime": "2026-06-10 15:00:00",
+    "endTime": "2026-09-10 15:00:00",
+    "remainingDays": 92,
+    "memberDiscountRate": 0.95
+  }
+}
+```
+
+**成功响应（非会员）：**
+
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": {
+    "isMember": false,
+    "startTime": null,
+    "endTime": null,
+    "remainingDays": 0,
+    "memberDiscountRate": null
+  }
+}
+```
+
+---
+
+### 12.3 每日签到
+
+> **需登录** — 普通用户 / 管理员
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/points/sign` |
+| **方法** | `POST` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+> 同一用户同一天只能签到一次，不可补签。连续签到中断后从基础分重新开始。
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "签到成功，获得 5 积分",
+  "data": {
+    "points": 5,
+    "totalPoints": 1280,
+    "consecutiveDays": 1
+  }
+}
+```
+
+**错误场景：**
+
+| 场景 | code | message |
+|------|:---:|------|
+| 今日已签到 | 400 | 今日已签到，明天再来吧 |
+
+---
+
+### 12.4 积分流水
+
+> **需登录** — 普通用户 / 管理员
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/points/records` |
+| **方法** | `GET` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**查询参数：**
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|:---:|------|------|
+| `page` | Integer | ❌ | 1 | 页码 |
+| `size` | Integer | ❌ | 20 | 每页条数 |
+| `type` | String | ❌ | — | 筛选类型：`签到` / `购物` / `抵扣` / `过期` |
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": {
+    "total": 56,
+    "page": 1,
+    "size": 20,
+    "pages": 3,
+    "records": [
+      {
+        "id": 1,
+        "points": 5,
+        "type": "签到",
+        "description": "每日签到",
+        "balance": 1280,
+        "expireAt": "2027-06-10 00:00:00",
+        "createdAt": "2026-06-10 08:00:00"
+      }
+    ]
+  }
+}
+```
+
+> `balance` 为该流水发生后的积分余额。`expireAt` 为该笔积分的过期时间（获得之日起 365 天）。
+
+---
+
+### 12.5 下单时使用积分抵扣
+
+> **修改现有接口** `POST /api/orders`（原文档 6.1 节）
+
+**请求体新增可选字段：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|:---:|------|
+| `pointsUsed` | Integer | ❌ | 使用的积分数量，100 积分 = 1 元，最多抵扣订单金额的 50% |
+
+**请求示例：**
+
+```json
+{
+  "cartIds": [1, 3],
+  "receiverName": "张三",
+  "receiverPhone": "13800138000",
+  "receiverAddress": "浙江省杭州市西湖区文三路 123 号",
+  "pointsUsed": 500
+}
+```
+
+> `totalAmount` 计算逻辑：商品折扣后总价 − 积分抵扣金额 = 实付金额。积分不足或超额时返回错误。
+
+**额外错误场景：**
+
+| 场景 | code | message |
+|------|:---:|------|
+| 积分不足 | 400 | 积分不足，当前可用积分 200 |
+| 超出抵扣上限 | 400 | 积分抵扣不能超过订单金额的 50% |
+
+---
+
+## 十三、多图上传模块
+
+> 扩展图书封面为多图模式：封面 1 张（沿用现有 `book.cover_url`）+ 详情图 N 张（新表 `book_image`）。复用已有 OSS 上传能力。
+
+---
+
+### 13.1 上传图书详情图
+
+> **管理员接口** — 需 `admin` 角色
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/admin/books/{id}/images` |
+| **方法** | `POST` |
+| **Content-Type** | `multipart/form-data` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long | 图书 ID |
+
+**表单参数：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|:---:|------|
+| `file` | File | ✅ | 图片文件 |
+
+**文件限制：**
+
+| 限制项 | 值 |
+|--------|-----|
+| 允许格式 | `.jpg` `.jpeg` `.png` `.webp` |
+| 最大大小 | 2 MB |
+| 上传位置 | 阿里云 OSS，目录 `details/` 下 |
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "上传成功",
+  "data": {
+    "id": 1,
+    "bookId": 1,
+    "imageUrl": "https://oss-cn-hangzhou.aliyuncs.com/inkread-bucket/details/a1b2c3d4.jpg",
+    "sortOrder": 0
+  }
+}
+```
+
+**错误场景：**
+
+| 场景 | code | message |
+|------|:---:|------|
+| 图书不存在 | 404 | 图书不存在 |
+| 格式不支持 | 400 | 仅支持 jpg、png、webp 格式的图片 |
+| 文件过大 | 400 | 图片大小不能超过 2MB |
+| 图片数量超限 | 400 | 每本图书最多上传 10 张详情图 |
+
+---
+
+### 13.2 删除图书详情图
+
+> **管理员接口** — 需 `admin` 角色
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/admin/books/{id}/images/{imageId}` |
+| **方法** | `DELETE` |
+| **请求头** | `Authorization: Bearer <token>` |
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long | 图书 ID |
+| `imageId` | Long | 图片记录 ID |
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "删除成功",
+  "data": null
+}
+```
+
+---
+
+### 13.3 获取图书图片列表
+
+> **公开接口** — 无需登录
+
+| 属性 | 值 |
+|------|-----|
+| **URL** | `/api/books/{id}/images` |
+| **方法** | `GET` |
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long | 图书 ID |
+
+> 返回封面 + 详情图列表，封面排在最前。
+
+**成功响应：**
+
+```json
+{
+  "code": 200,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 0,
+      "imageUrl": "https://oss-cn-hangzhou.aliyuncs.com/inkread-bucket/covers/java-think.jpg",
+      "type": "cover"
+    },
+    {
+      "id": 1,
+      "imageUrl": "https://oss-cn-hangzhou.aliyuncs.com/inkread-bucket/details/a1b2c3d4.jpg",
+      "type": "detail"
+    },
+    {
+      "id": 2,
+      "imageUrl": "https://oss-cn-hangzhou.aliyuncs.com/inkread-bucket/details/e5f6g7h8.jpg",
+      "type": "detail"
+    }
+  ]
+}
+```
+
+---
+
+## 十四、错误码速查表
 
 | code | 含义 | 常见场景 |
 |:---:|------|------|
@@ -2290,8 +3230,28 @@ http://localhost:8080
 | 42 | `/api/admin/announcements/{id}` | PUT | 管理员 | 公告 | 编辑公告 |
 | 43 | `/api/admin/announcements/{id}` | DELETE | 管理员 | 公告 | 删除公告 |
 | 44 | `/api/admin/announcements/{id}/status` | PUT | 管理员 | 公告 | 发布/撤回 |
+| 45 | `/api/messages` | POST | 登录 | 留言 | 发布留言 |
+| 46 | `/api/messages/wall` | GET | 公开 | 留言 | 留言墙（10条） |
+| 47 | `/api/messages` | GET | 公开 | 留言 | 留言区列表 |
+| 48 | `/api/messages/{id}` | GET | 公开 | 留言 | 留言详情 |
+| 49 | `/api/messages/{id}/like` | POST | 登录 | 留言 | 点赞 |
+| 50 | `/api/messages/{id}/like` | DELETE | 登录 | 留言 | 取消点赞 |
+| 51 | `/api/messages/{id}` | DELETE | 登录 | 留言 | 删除留言 |
+| 52 | `/api/admin/messages` | GET | 管理员 | 留言 | 后台留言管理 |
+| 53 | `/api/admin/discounts` | POST | 管理员 | 折扣 | 创建折扣 |
+| 54 | `/api/admin/discounts` | GET | 管理员 | 折扣 | 折扣列表 |
+| 55 | `/api/admin/discounts/{id}` | GET | 管理员 | 折扣 | 折扣详情 |
+| 56 | `/api/admin/discounts/{id}` | PUT | 管理员 | 折扣 | 编辑折扣 |
+| 57 | `/api/admin/discounts/{id}` | DELETE | 管理员 | 折扣 | 删除折扣 |
+| 58 | `/api/members/buy` | POST | 登录 | 会员 | 购买会员 |
+| 59 | `/api/members/my` | GET | 登录 | 会员 | 会员状态 |
+| 60 | `/api/points/sign` | POST | 登录 | 积分 | 每日签到 |
+| 61 | `/api/points/records` | GET | 登录 | 积分 | 积分流水 |
+| 62 | `/api/admin/books/{id}/images` | POST | 管理员 | 多图 | 上传详情图 |
+| 63 | `/api/admin/books/{id}/images/{imageId}` | DELETE | 管理员 | 多图 | 删除详情图 |
+| 64 | `/api/books/{id}/images` | GET | 公开 | 多图 | 图书图片列表 |
 
-> 📊 **接口统计**：公开 8 个 / 需登录 13 个 / 管理员 23 个 / 合计 44 个
+> 📊 **接口统计**：公开 12 个 / 需登录 21 个 / 管理员 31 个 / 合计 64 个
 
 ---
 
@@ -2576,7 +3536,135 @@ http://localhost:8080
 
 ---
 
-### C.8 多表联查对照表
+### C.8 message（留言表）
+
+| 字段 | 类型 | 约束 | 默认值 | 说明 |
+|------|------|------|------|------|
+| `id` | BIGINT | PK, AUTO_INCREMENT | — | 留言 ID |
+| `user_id` | BIGINT | NOT NULL, FK → user.id | — | 发布用户 ID |
+| `content` | VARCHAR(500) | NOT NULL | — | 留言内容 |
+| `like_count` | INT | NOT NULL | `0` | 点赞数（冗余字段，点赞/取消时同步更新） |
+| `created_at` | DATETIME | NOT NULL | `CURRENT_TIMESTAMP` | 发布时间 |
+| `updated_at` | DATETIME | NOT NULL | `CURRENT_TIMESTAMP` ON UPDATE | 更新时间 |
+| `is_deleted` | TINYINT(1) | NOT NULL | `0` | 软删除 |
+
+**索引：**
+
+| 索引名 | 字段 | 类型 |
+|--------|------|:---:|
+| `idx_message_user` | `user_id` | NORMAL |
+| `idx_message_like` | `like_count DESC` | NORMAL |
+| `idx_message_deleted_time` | `is_deleted, created_at DESC` | NORMAL |
+
+---
+
+### C.9 message_like（点赞记录表）
+
+| 字段 | 类型 | 约束 | 默认值 | 说明 |
+|------|------|------|------|------|
+| `id` | BIGINT | PK, AUTO_INCREMENT | — | 记录 ID |
+| `message_id` | BIGINT | NOT NULL, FK → message.id | — | 留言 ID |
+| `user_id` | BIGINT | NOT NULL, FK → user.id | — | 点赞用户 ID |
+| `created_at` | DATETIME | NOT NULL | `CURRENT_TIMESTAMP` | 点赞时间 |
+
+**索引：**
+
+| 索引名 | 字段 | 类型 |
+|--------|------|:---:|
+| `idx_like_message_user` | `message_id, user_id` | **UNIQUE**（同一用户不能对同一条留言重复点赞） |
+
+---
+
+### C.10 discount（营销折扣表）
+
+| 字段 | 类型 | 约束 | 默认值 | 说明 |
+|------|------|------|------|------|
+| `id` | BIGINT | PK, AUTO_INCREMENT | — | 折扣 ID |
+| `book_id` | BIGINT | NULL, FK → book.id | NULL | 指定图书 ID（与 category_id 至少一个不为空） |
+| `category_id` | BIGINT | NULL, FK → category.id | NULL | 指定分类 ID（与 book_id 至少一个不为空） |
+| `discount_rate` | DECIMAL(4,2) | NOT NULL | — | 折扣率，如 `0.80` 表示 8 折 |
+| `start_time` | DATETIME | NULL | NULL | 生效开始时间（NULL = 立即生效） |
+| `end_time` | DATETIME | NULL | NULL | 生效结束时间（NULL = 永久有效） |
+| `created_at` | DATETIME | NOT NULL | `CURRENT_TIMESTAMP` | 创建时间 |
+| `updated_at` | DATETIME | NOT NULL | `CURRENT_TIMESTAMP` ON UPDATE | 更新时间 |
+
+**索引：**
+
+| 索引名 | 字段 | 类型 |
+|--------|------|:---:|
+| `idx_discount_book` | `book_id` | NORMAL |
+| `idx_discount_category` | `category_id` | NORMAL |
+| `idx_discount_time` | `start_time, end_time` | NORMAL |
+
+> **业务约束**：`book_id` 和 `category_id` 至少填一个。折扣生效规则：若图书同时命中单书折扣和分类折扣，取折后价格更低者。`@Scheduled` 每分钟扫描过期折扣。
+
+---
+
+### C.11 member（会员表）
+
+| 字段 | 类型 | 约束 | 默认值 | 说明 |
+|------|------|------|------|------|
+| `id` | BIGINT | PK, AUTO_INCREMENT | — | 记录 ID |
+| `user_id` | BIGINT | NOT NULL, UNIQUE, FK → user.id | — | 用户 ID（一个用户一条记录） |
+| `start_time` | DATETIME | NOT NULL | — | 会员生效时间 |
+| `end_time` | DATETIME | NOT NULL | — | 会员到期时间 |
+| `created_at` | DATETIME | NOT NULL | `CURRENT_TIMESTAMP` | 创建时间 |
+| `updated_at` | DATETIME | NOT NULL | `CURRENT_TIMESTAMP` ON UPDATE | 更新时间 |
+
+**索引：**
+
+| 索引名 | 字段 | 类型 |
+|--------|------|:---:|
+| `idx_member_user` | `user_id` | UNIQUE |
+| `idx_member_expire` | `end_time` | NORMAL |
+
+> 会员过期由 `@Scheduled` 定时扫描 `end_time < NOW()` 的记录处理降级。
+
+---
+
+### C.12 points_record（积分流水表）
+
+| 字段 | 类型 | 约束 | 默认值 | 说明 |
+|------|------|------|------|------|
+| `id` | BIGINT | PK, AUTO_INCREMENT | — | 流水 ID |
+| `user_id` | BIGINT | NOT NULL, FK → user.id | — | 用户 ID |
+| `points` | INT | NOT NULL | — | 变动积分数（正值增加，负值扣减） |
+| `type` | VARCHAR(20) | NOT NULL | — | 类型：`签到` / `购物` / `抵扣` / `过期` |
+| `description` | VARCHAR(200) | NULL | NULL | 描述 |
+| `expire_at` | DATETIME | NULL | NULL | 该笔积分过期时间（获得之日起 365 天；抵扣和过期类型为 NULL） |
+| `created_at` | DATETIME | NOT NULL | `CURRENT_TIMESTAMP` | 发生时间 |
+
+**索引：**
+
+| 索引名 | 字段 | 类型 |
+|--------|------|:---:|
+| `idx_points_user` | `user_id, created_at DESC` | NORMAL |
+| `idx_points_type` | `user_id, type` | NORMAL |
+| `idx_points_expire` | `expire_at` | NORMAL |
+
+> 用户总积分 = `SUM(points)`。`@Scheduled` 每日扫描 `expire_at < NOW()` 的记录，自动写入扣减流水。
+
+---
+
+### C.13 book_image（图书详情图表）
+
+| 字段 | 类型 | 约束 | 默认值 | 说明 |
+|------|------|------|------|------|
+| `id` | BIGINT | PK, AUTO_INCREMENT | — | 图片 ID |
+| `book_id` | BIGINT | NOT NULL, FK → book.id | — | 所属图书 ID |
+| `image_url` | VARCHAR(500) | NOT NULL | — | 图片 URL（OSS） |
+| `sort_order` | INT | NOT NULL | `0` | 排序号（越小越靠前） |
+| `created_at` | DATETIME | NOT NULL | `CURRENT_TIMESTAMP` | 上传时间 |
+
+**索引：**
+
+| 索引名 | 字段 | 类型 |
+|--------|------|:---:|
+| `idx_image_book` | `book_id, sort_order` | NORMAL |
+
+---
+
+### C.14 多表联查对照表
 
 > 以下列出开发过程中需要手写的主要多表联查 SQL 场景，用于指导 MyBatis XML Mapper 编写。
 
@@ -2591,10 +3679,14 @@ http://localhost:8080
 | 7 | 后台分类列表（统计图书数） | `LEFT JOIN` + `COUNT` + `GROUP BY` | category + book | `GET /api/admin/categories` |
 | 8 | 后台用户列表（统计订单数） | `LEFT JOIN` + `COUNT` + `GROUP BY` | user + orders | `GET /api/admin/users` |
 | 9 | 仪表盘统计 | `COUNT` 聚合 | book + category + user + orders | `GET /api/admin/dashboard` |
+| 10 | 留言列表（带用户信息） | `LEFT JOIN` | message + user | `GET /api/messages` |
+| 11 | 留言墙（按点赞排序，带用户信息） | `LEFT JOIN` | message + user | `GET /api/messages/wall` |
+| 12 | 折扣列表（带书名或分类名） | `LEFT JOIN ×2` | discount + book + category | `GET /api/admin/discounts` |
+| 13 | 图书当前折扣（单书 + 分类折扣取最低） | `LEFT JOIN` + `MIN` | book + discount | 图书列表/详情折扣计算 |
 
 ---
 
-### C.9 初始化数据建议
+### C.15 初始化数据建议
 
 学习阶段建议手动插入测试数据，方便验证功能：
 
@@ -2606,4 +3698,4 @@ http://localhost:8080
 
 ---
 
-> 接口文档版本：v1.2 | 共 44 个接口 | 7 张数据表 | 下一步：开始编码 🚀
+> 接口文档版本：v1.5 | 共 64 个接口 | 13 张数据表 | 下一步：开始编码 🚀

@@ -86,3 +86,30 @@ create table announcement (
                               updated_at datetime comment '更新时间',
                               is_deleted tinyint comment '软删除'
 ) comment '公告表';
+
+create table announcement (
+                              id bigint primary key auto_increment comment '公告ID',
+                              title varchar(200) comment '公告标题',
+                              content text comment '公告内容',
+                              status tinyint comment '状态',
+                              created_at datetime comment '创建时间',
+                              updated_at datetime comment '更新时间',
+                              is_deleted tinyint comment '软删除'
+) comment '公告表';
+
+create table message (
+                         id bigint primary key auto_increment comment '留言ID',
+                         user_id bigint comment '发布用户ID',
+                         content varchar(500) comment '留言内容',
+                         like_count int comment '点赞数',
+                         created_at datetime comment '发布时间',
+                         updated_at datetime comment '更新时间',
+                         is_deleted tinyint comment '软删除'
+) comment '留言表';
+
+create table message_like (
+                              id bigint primary key auto_increment comment '点赞记录ID',
+                              message_id bigint comment '留言ID',
+                              user_id bigint comment '点赞用户ID',
+                              created_at datetime comment '发布时间'
+) comment '点赞记录表';

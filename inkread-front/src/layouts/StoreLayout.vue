@@ -12,6 +12,7 @@
       <nav class="store-nav">
         <RouterLink to="/">书架</RouterLink>
         <RouterLink to="/announcements">公告</RouterLink>
+        <RouterLink to="/messages">留言</RouterLink>
         <RouterLink to="/cart">购物车</RouterLink>
         <RouterLink to="/orders">订单</RouterLink>
         <RouterLink v-if="auth.isAdmin" to="/admin/books">后台</RouterLink>

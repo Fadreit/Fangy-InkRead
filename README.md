@@ -191,6 +191,9 @@ user → category → book → cart → orders → order_item -> announcement
 - [x] 修复部分bug
 - [x] 前端代码更正
 
+### ver 1.2 ----- 2026.6.7
+- [x] 添加留言功能
+- [x] 更新API文档
 ---
 
 ## 🤝 贡献
